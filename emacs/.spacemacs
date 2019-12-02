@@ -495,6 +495,15 @@ you should place your code here."
   (defun my-c-setup ()
     (c-set-offset 'innamespace [0]))
   (add-hook 'c++-mode-hook 'my-c-setup)
+  ;; Switch between header and source files.
+  (defvar my-cpp-other-file-alist
+    '(("\\.cpp\\'" (".h"))
+      ("\\.h\\'" (".cpp"))
+      ))
+  (setq-default ff-other-file-alist 'my-cpp-other-file-alist)
+  (add-hook 'c-mode-common-hook
+            (lambda()
+              (local-set-key (kbd "C-c o") 'ff-find-other-file)))
 
   ;; === vim ===
   "Set jk as custom escape key sequence"
