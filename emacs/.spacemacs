@@ -30,10 +30,11 @@ values."
    dotspacemacs-configuration-layer-path '()
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
-   '(
+   '(csv
      graphviz
      html
      yaml
+     cmake
      ;; ----------------------------------------------------------------
      ;; Example of useful layers you may want to use right away.
      ;; Uncomment some layer names and press <SPC f e R> (Vim style) or
@@ -166,7 +167,7 @@ values."
    ;; Default font, or prioritized list of fonts. `powerline-scale' allows to
    ;; quickly tweak the mode-line size to make separators look not too crappy.
    dotspacemacs-default-font '("Source Code Pro"
-                               :size 16.0
+                               :size 12.0
                                :weight normal
                                :width normal
                                :powerline-scale 1.1)
@@ -334,8 +335,8 @@ executes.
 before packages are loaded. If you are unsure, you should try in setting them in
 `dotspacemacs/user-config' first."
   ;; Automatically do spell checking on LaTeX files
-  (with-eval-after-load 'tex
-    (add-hook 'TeX-mode-hook 'flyspell-buffer))
+  ;; (with-eval-after-load 'tex
+  ;;   (add-hook 'TeX-mode-hook 'flyspell-buffer))
   )
 
 (defun dotspacemacs/user-config ()
@@ -353,6 +354,35 @@ you should place your code here."
   ;; Also in visual mode
   (define-key evil-visual-state-map "j" 'evil-next-visual-line)
   (define-key evil-visual-state-map "k" 'evil-previous-visual-line)
+
+  ;; Latex (https://github.com/syl20bnr/spacemacs/issues/8163)
+  ;; Use Skim on macOS to utilize synctex.
+  (setq TeX-source-correlate-mode t)
+  (setq TeX-source-correlate-start-server t)
+  (setq TeX-source-correlate-method 'synctex)
+  (setq TeX-view-program-list
+        '(("Okular" "okular --unique %o#src:%n`pwd`/./%b")
+          ("Skim" "/Applications/Skim.app/Contents/SharedSupport/displayline -b -g %n %o %b")
+          ("Zathura"
+           ("zathura %o"
+            (mode-io-correlate
+             " --synctex-forward %n:0:%b -x \"emacsclient +%{line} %{input}\"")))))
+  (cond
+   ((spacemacs/system-is-mac) (setq TeX-view-program-selection '((output-pdf "Skim"))))
+   ;; For linux, use Okular or perhaps Zathura.
+   ((spacemacs/system-is-linux) (setq TeX-view-program-selection '((output-pdf "Okular")))))
+  ;; (add-hook 'after-save-hook
+  ;;           (lambda ()
+  ;;             (when (string= major-mode 'latex-mode)
+  ;;               (TeX-run-latexmk
+  ;;                "LaTeX"
+  ;;                (format "latexmk -xelatex %s" (buffer-file-name))
+  ;;                (file-name-base (buffer-file-name))))))
+
+  ;; === flyspell ===
+  (eval-after-load "flyspell"
+    '(defun flyspell-mode (&optional arg)))
+
 
   ;; === vcs ===
   (setq vc-follow-symlinks t)
@@ -412,7 +442,7 @@ you should place your code here."
     (setq org-ref-open-pdf-function
           (lambda (fpath)
             (start-process "evince" "*helm-bibtex-evince*" "/usr/bin/evince" fpath)))
-    (setq org-ref-default-bibliography '("~/Dropbox (MIT)/Library/library.bib")
+    (setq org-ref-default-bibliography '("~/papers/main.bib")
           org-ref-pdf-directory "~/Dropbox (MIT)/Library/"
           org-ref-bibliography-notes "~/org/library.org")
 
@@ -504,6 +534,8 @@ you should place your code here."
   (add-hook 'c-mode-common-hook
             (lambda()
               (local-set-key (kbd "C-c o") 'ff-find-other-file)))
+  ;; For templated implementation files.
+  (add-to-list 'auto-mode-alist '("\\.tpp$" . c++-mode))
 
   ;; === vim ===
   "Set jk as custom escape key sequence"
@@ -532,3 +564,23 @@ you should place your code here."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(default ((((class color) (min-colors 257)) (:foreground "#F8F8F2" :background "#272822")) (((class color) (min-colors 89)) (:foreground "#F5F5F5" :background "#1B1E1C")))))
+(defun dotspacemacs/emacs-custom-settings ()
+  "Emacs custom settings.
+This is an auto-generated function, do not modify its content directly, use
+Emacs customize menu instead.
+This function is called at the very end of Spacemacs initialization."
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   (quote
+    (csv-mode flyspell-correct graphviz-dot-mode auctex-latexmk web-mode tagedit slim-mode scss-mode sass-mode pug-mode less-css-mode helm-css-scss haml-mode emmet-mode company-web web-completion-data yaml-mode org-category-capture alert log4e gntp skewer-mode simple-httpd json-snatcher json-reformat multiple-cursors js2-mode transient gh marshal logito pcache ht yapfify pyvenv pytest pyenv-mode py-isort pip-requirements live-py-mode hy-mode helm-pydoc cython-mode company-anaconda anaconda-mode pythonic helm-company helm-c-yasnippet fuzzy company-tern dash-functional tern company-statistics company-c-headers company-auctex company auto-yasnippet ac-ispell auto-complete pos-tip flycheck xterm-color shell-pop multi-term eshell-z eshell-prompt-extras esh-help ws-butler winum which-key web-beautify volatile-highlights vi-tilde-fringe uuidgen use-package toc-org thrift stickyfunc-enhance stan-mode srefactor spaceline smeargle scad-mode restart-emacs rainbow-delimiters qml-mode popwin persp-mode pcre2el paradox orgit org-ref org-projectile org-present org-pomodoro org-mime org-download org-bullets open-junk-file neotree move-text monokai-theme mmm-mode matlab-mode markdown-toc magit-gitflow magit-gh-pulls macrostep lorem-ipsum livid-mode linum-relative link-hint julia-mode json-mode js2-refactor js-doc indent-guide hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-gtags helm-gitignore helm-flx helm-descbinds helm-ag google-translate golden-ratio gnuplot github-search github-clone github-browse-file gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link gist gh-md ggtags flyspell-correct-helm flycheck-pos-tip flx-ido fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu elisp-slime-nav dumb-jump disaster diminish define-word column-enforce-mode coffee-mode cmake-mode clean-aindent-mode clang-format auto-highlight-symbol auto-dictionary auto-compile auctex arduino-mode aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(default ((((class color) (min-colors 257)) (:foreground "#F8F8F2" :background "#272822")) (((class color) (min-colors 89)) (:foreground "#F5F5F5" :background "#1B1E1C")))))
+)
